@@ -1,0 +1,6 @@
+[package]
+name = "hexocat-bot"
+version = "0.1.0"
+authors = ["Araz Abishov <araz.abishov.gsoc@gmail.com>"]
+
+[dependencies]

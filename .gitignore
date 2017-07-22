@@ -1,0 +1,11 @@
+# IDEA
+.idea/
+
+# OSX
+.DS_Store
+
+# Cargo
+Cargo.lock
+
+# Build
+target/

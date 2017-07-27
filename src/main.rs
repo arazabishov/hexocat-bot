@@ -42,15 +42,19 @@ service! {
     }
 }
 
-fn prepare_response_body(repositories: Vec<Repository>) -> String {
-    return repositories.iter()
-        .map(|repo| format!("{0} by {1}: {2}", repo.name, repo.owner.login, repo.html_url))
+fn prepare_response_body(repos: Vec<Repository>) -> String {
+    return repos.iter()
+        .map(|repo| format!("{0} by {1}: {2}",
+            repo.name, repo.owner.login, repo.html_url))
         .collect::<Vec<String>>()
         .join("\n");
 }
 
 fn main() {
-    if env::args().count() == 0 || env::args().count() == 1 {
+    // When running app through cargo, the first argument
+    // is a path to the binary being executed. Hence, if repository
+    // name is provided, the argument count must be at least two.
+    if env::args().count() < 2 {
         println!("Please, specify repository name you would like to find.");
         return;
     }

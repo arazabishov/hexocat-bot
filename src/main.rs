@@ -59,13 +59,16 @@ fn main() {
         return;
     }
 
+    // Extract the last argument as a search keyword.
+    let repository = env::args().last().unwrap();
+
+    // Building an instance of GitHubService.
     let service = Adapter::builder()
         .base_url(Url::parse("https://api.github.com").unwrap())
         .interceptor(AddHeader(UserAgentHeader("hexocat-bot".to_string())))
         .serialize_json()
         .build();
 
-    let repository = env::args().last().unwrap();
     let response = match service.search(repository.to_string(), 10).exec().block() {
         Ok(result) => prepare_response_body(result.items),
         Err(error) => "Oops, something went wrong.".to_string()

@@ -64,9 +64,10 @@ service! {
 
 fn prepare_response_body(repos: Vec<Repository>) -> String {
     return repos.iter()
-        .map(|repo| format!("{0} by {1}: {2}", repo.name, repo.owner.login, repo.html_url))
+        .map(|repo| format!("<{0}|{1}> by <{2}|{3}>\n{4}\n----", repo.html_url,
+                repo.name, repo.owner.html_url, repo.owner.login, repo.description))
         .collect::<Vec<String>>()
-        .join("\n");
+        .join("\n\n");
 }
 
 fn prepare_response(text: String) -> Response<'static> {
@@ -100,7 +101,7 @@ fn hexocat(form_request: LenientForm<SlackRequest>) -> Response<'static> {
     let repository = request.text.to_lowercase().to_string();
     let response_body = match service.search(repository, 10).exec().block() {
         Ok(result) => prepare_response_body(result.items),
-        Err(error) => "Oops, something went wrong.".to_string()
+        Err(_) => "Oops, something went wrong.".to_string()
     };
 
     return prepare_response(response_body);

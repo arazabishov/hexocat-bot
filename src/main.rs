@@ -84,7 +84,26 @@ fn prepare_response(text: String) -> Response<'static> {
 
 #[post("/", data = "<form_request>")]
 fn hexocat(form_request: LenientForm<SlackRequest>) -> Response<'static> {
-    return prepare_response("Yay, we got first response served.".to_string());
+    let request = form_request.get();
+
+    if request.text.trim().is_empty() {
+        return prepare_response("Specify repository name to search. \
+                For example: /hexocat linux".to_string());
+    }
+
+    let service = Adapter::builder()
+        .base_url(Url::parse("https://api.github.com").unwrap())
+        .interceptor(AddHeader(UserAgentHeader("hexocat-bot".to_string())))
+        .serialize_json()
+        .build();
+
+    let repository = request.text.to_lowercase().to_string();
+    let response_body = match service.search(repository, 10).exec().block() {
+        Ok(result) => prepare_response_body(result.items),
+        Err(error) => "Oops, something went wrong.".to_string()
+    };
+
+    return prepare_response(response_body);
 }
 
 fn main() {

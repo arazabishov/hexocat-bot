@@ -33,6 +33,27 @@ struct SearchResult {
     items: Vec<Repository>
 }
 
+#[derive(Debug, Serialize)]
+struct SlackResponse {
+    text: String,
+    response_type: String,
+}
+
+#[allow(dead_code)]
+#[derive(FromForm)]
+struct SlackRequest {
+    text: String,
+    token: String,
+    team_id: String,
+    team_domain: String,
+    channel_id: String,
+    channel_name: String,
+    user_id: String,
+    user_name: String,
+    command: String,
+    response_url: String
+}
+
 service! {
     trait GitHubService {
         fn search(&self, q: String, p: u32) -> SearchResult {

@@ -12,13 +12,18 @@ extern crate serde_derive;
 extern crate anterofit;
 
 use std::io::Cursor;
+
 use anterofit::{Adapter, Url};
 use anterofit::net::intercept::AddHeader;
-use useragent::UserAgentHeader;
-use rocket::request::LenientForm;
+
+use rocket::State;
+use rocket::fairing::AdHoc;
 use rocket::response::Response;
+use rocket::config::Environment;
+use rocket::request::LenientForm;
 use rocket::http::{ContentType, Status};
-use rocket::config::{self, ConfigError, Environment};
+
+use useragent::UserAgentHeader;
 
 mod useragent;
 
@@ -41,7 +46,7 @@ struct SearchResult {
     items: Vec<Repository>
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Serialize)]
 struct SlackResponse {
     text: String,
     response_type: String,
@@ -50,6 +55,11 @@ struct SlackResponse {
 #[derive(FromForm)]
 struct SlackRequest {
     text: String,
+    token: String
+}
+
+struct Configuration {
+    environment: Environment,
     token: String
 }
 
@@ -83,11 +93,26 @@ fn prepare_response(text: String) -> Response<'static> {
         .finalize();
 }
 
-#[post("/", data = "<form_request>")]
-fn hexocat(form_request: LenientForm<SlackRequest>) -> Response<'static> {
-    let request = form_request.get();
+fn check_access(config: &Configuration, token: String) -> bool {
+    return match config.environment {
+        Environment::Development => true,
+        Environment::Staging => config.token.eq(&token),
+        Environment::Production => config.token.eq(&token)
+    };
+}
 
-    if request.text.trim().is_empty() {
+#[allow(unmanaged_state)]
+#[post("/", data = "<request>")]
+fn hexocat(request: LenientForm<SlackRequest>, s: State<Configuration>) -> Response<'static> {
+    let slack_request = request.get();
+
+    if !check_access(s.inner(), slack_request.token.to_owned()) {
+        return Response::build()
+            .status(Status::Forbidden)
+            .finalize();
+    }
+
+    if slack_request.text.trim().is_empty() {
         return prepare_response("Specify repository name to search. \
                 For example: /hexocat linux".to_string());
     }
@@ -98,7 +123,7 @@ fn hexocat(form_request: LenientForm<SlackRequest>) -> Response<'static> {
         .serialize_json()
         .build();
 
-    let repository = request.text.to_lowercase().to_string();
+    let repository = slack_request.text.to_lowercase().to_string();
     let response_body = match service.search(repository, 10).exec().block() {
         Ok(result) => prepare_response_body(result.items),
         Err(_) => "Oops, something went wrong.".to_string()
@@ -108,5 +133,14 @@ fn hexocat(form_request: LenientForm<SlackRequest>) -> Response<'static> {
 }
 
 fn main() {
-    rocket::ignite().mount("/hexocat/", routes![hexocat]).launch();
+    rocket::ignite()
+        .attach(AdHoc::on_attach(|rocket| {
+            let config = rocket.config().clone();
+            return Ok(rocket.manage(Configuration {
+                environment: config.environment,
+                token: config.get_str("key").unwrap_or("").to_string()
+            }));
+        }))
+        .mount("/hexocat/", routes![hexocat])
+        .launch();
 }

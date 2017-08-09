@@ -1,4 +1,7 @@
 # hexocat-bot
+
+[![Build Status](https://travis-ci.org/ArazAbishov/hexocat-bot.svg?branch=master )](https://github.com/ArazAbishov/hexocat-bot) 
+
 Simple slash command implementation for searching GitHub repositories in Rust. This repo is a part of the blog post series:  
  - [part one](https://abishov.com/2017/07/27/hexocat-bot-part-1.html) 
  - [part two](https://abishov.com/2017/08/08/hexocat-bot-part-2.html)

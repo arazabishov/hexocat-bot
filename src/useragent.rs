@@ -7,6 +7,7 @@ use anterofit::net::header::{Header, HeaderFormat};
 #[derive(Clone, PartialEq, Debug)]
 pub struct UserAgentHeader(pub String);
 
+// Implementing the trait provided by the Anterofit.
 impl Header for UserAgentHeader {
     fn header_name() -> &'static str {
         return "User-Agent";

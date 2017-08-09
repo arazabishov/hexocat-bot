@@ -11,3 +11,7 @@ anterofit = "0.1.1"
 serde = "0.9"
 serde_json = "0.9"
 serde_derive = "0.9"
+
+# web framework
+rocket = "0.3.0"
+rocket_codegen = "0.3.0"

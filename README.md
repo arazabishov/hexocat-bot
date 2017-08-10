@@ -24,7 +24,7 @@ curl -X POST \
   -d 'text=retrofit&token=test_token'
 ```
 
-In case if you want to run a server in the production environment you have either to change `Rocket.toml` file or to supply environment variables.
+If you want to run a server in the production environment you have either to change `Rocket.toml` file to include extra properties or to expose them as environment variables:
 
 ```bash
 # Prepare release version of the binary.
@@ -35,6 +35,6 @@ export ROCKET_ENV=production cargo run
 export ROCKET_KEY=your_slack_token
 export ROCKET_PORT=2727
 
-# Execute the binary. 
+# Execute the binary to start server. 
 target/release/hexocat-bot
 ```  

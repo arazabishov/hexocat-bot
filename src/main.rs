@@ -37,7 +37,7 @@ struct Owner {
 struct Repository {
     name: String,
     html_url: String,
-    description: String,
+    description: Option<String>,
     owner: Owner
 }
 
@@ -94,7 +94,7 @@ service! {
 fn prepare_response_body(repos: Vec<Repository>) -> String {
     return repos.iter()
         .map(|repo| format!("<{0}|{1}> by <{2}|{3}>\n{4}\n----", repo.html_url,
-                repo.name, repo.owner.html_url, repo.owner.login, repo.description))
+                repo.name, repo.owner.html_url, repo.owner.login, repo.description.as_ref().unwrap_or(&"-".to_string())))
         .collect::<Vec<String>>()
         .join("\n\n");
 }
